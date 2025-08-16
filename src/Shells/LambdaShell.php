@@ -2,8 +2,8 @@
 
 namespace DatPM\SlsTinker\Shells;
 
-use Psy\Shell;
 use Psy\Configuration;
+use Psy\Shell;
 
 abstract class LambdaShell extends Shell
 {
@@ -29,11 +29,11 @@ abstract class LambdaShell extends Shell
 
     protected static function isRunningInLambda(): bool
     {
-        return !empty(env('AWS_LAMBDA_RUNTIME_API'));
+        return ! empty(env('AWS_LAMBDA_RUNTIME_API'));
     }
 
     /**
-     * @param $context
+     * @param  $context
      * @return void
      */
     public function writeContextData($vars)
@@ -44,13 +44,13 @@ abstract class LambdaShell extends Shell
     }
 
     /**
-     * @param $output
      * @return array
      */
     public function extractContextData($output)
     {
         $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]/s';
         preg_match($pattern, $output, $matches);
+
         return empty($matches) ? null : [$matches[1], $matches[2]];
     }
 

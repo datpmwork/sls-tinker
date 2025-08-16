@@ -15,9 +15,6 @@ class InvocationFailed extends \Exception
         parent::__construct($message);
     }
 
-    /**
-     * @return InvocationResult
-     */
     public function getInvocationResult(): InvocationResult
     {
         return $this->invocationResult;

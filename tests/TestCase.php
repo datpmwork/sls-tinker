@@ -2,9 +2,9 @@
 
 namespace DatPM\SlsTinker\Tests;
 
-use Symfony\Component\Process\Process;
-use Orchestra\Testbench\TestCase as Orchestra;
 use DatPM\SlsTinker\SlsTinkerServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
+use Symfony\Component\Process\Process;
 
 class TestCase extends Orchestra
 {
@@ -37,7 +37,7 @@ class TestCase extends Orchestra
         }
 
         // Join all commands with newlines
-        $input = implode("\n", $commands) . "\n";
+        $input = implode("\n", $commands)."\n";
 
         $process->setInput($input);
         $process->setTimeout($timeout);
@@ -45,7 +45,7 @@ class TestCase extends Orchestra
         $process->run();
 
         // Return both stdout and stderr combined
-        return $process->getOutput() . $process->getErrorOutput();
+        return $process->getOutput().$process->getErrorOutput();
     }
 
     protected function extractEchoOutput(string $fullOutput): string
@@ -63,10 +63,11 @@ class TestCase extends Orchestra
             $trimmed = trim($line, " \n\r\t\v\0\e");
 
             // Wait until Psy Shell starts
-            if (!$insidePsyShell) {
+            if (! $insidePsyShell) {
                 if (str_contains($trimmed, 'Psy Shell')) {
                     $insidePsyShell = true;
                 }
+
                 continue;
             }
 

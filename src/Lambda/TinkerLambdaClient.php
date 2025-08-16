@@ -28,7 +28,8 @@ class TinkerLambdaClient
     /**
      * Synchronously invoke a function.
      *
-     * @param mixed $event Event data (can be null).
+     * @param  mixed  $event  Event data (can be null).
+     *
      * @throws InvocationFailed
      */
     public function invoke(string $functionName, $event = null): InvocationResult

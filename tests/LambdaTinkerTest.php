@@ -18,10 +18,10 @@ it('tests wrong variable usage across commands', function () {
     $this->expectTinkerOutput('function', [
         '$a = 1;',
         'echo $c;',
-        'echo "a = $a";'
+        'echo "a = $a";',
     ], function ($output) {
-        expect($output)->toContain("Undefined variable \$c")
-            ->and($output)->toContain("a = 1");
+        expect($output)->toContain('Undefined variable $c')
+            ->and($output)->toContain('a = 1');
     });
 });
 
@@ -35,6 +35,6 @@ it('should fail when lambda function not found', function () {
         '$c = $a + $b;',
         'echo $c;',
     ], function ($output) {
-        expect($output)->toContain("HTTP 404 returned");
+        expect($output)->toContain('HTTP 404 returned');
     });
 });
