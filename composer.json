@@ -1,24 +1,27 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "datpmwork/sls-tinker",
+    "description": "Interactive Tinker For Lambda (bref, vapor, etc)",
     "keywords": [
-        ":vendor_name",
+        "datpmwork",
         "laravel",
-        ":package_slug"
+        "sls-tinker"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/datpmwork/sls-tinker",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "datpmwork",
+            "email": "datpm@datpm.work",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^7.4|^8.0",
+        "async-aws/core": "^1.26",
+        "async-aws/lambda": "^2.11",
+        "illuminate/contracts": "^10.0||^11.0||^12.0",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^10.0||^11.0||^12.0"
+        "ext-json": "*"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
@@ -35,13 +38,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "DatPM\\SlsTinker\\": "src/",
+            "DatPM\\SlsTinker\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "DatPM\\SlsTinker\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -63,11 +66,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
-            ],
-            "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
-            }
+                "DatPM\\SlsTinker\\SlsTinkerServiceProvider"
+            ]
         }
     },
     "minimum-stability": "dev",

@@ -16,7 +16,7 @@
     backupStaticProperties="false"
 >
     <testsuites>
-        <testsuite name="VendorName Test Suite">
+        <testsuite name="DatPM Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
@@ -28,4 +28,7 @@
             <directory suffix=".php">./src</directory>
         </include>
     </source>
+    <php>
+        <env name="TINKER_LAMBDA_ENDPOINT" value="http://localhost:9090"/>
+    </php>
 </phpunit>

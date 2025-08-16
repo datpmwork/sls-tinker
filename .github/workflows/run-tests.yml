@@ -1,63 +1,82 @@
-name: run-tests
+name: Tests
 
-on:
-  push:
-    paths:
-      - '**.php'
-      - '.github/workflows/run-tests.yml'
-      - 'phpunit.xml.dist'
-      - 'composer.json'
-      - 'composer.lock'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        php: [8.4, 8.3]
-        laravel: [12.*, 11.*, 10.*]
-        stability: [prefer-lowest, prefer-stable]
-        include:
-          - laravel: 12.*
-            testbench: 10.*
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
+        laravel: [ 10.*, 11.*, 12.* ]
+        stability: [ prefer-stable ]
+        exclude:
+          # Laravel 11 requires PHP 8.2+
           - laravel: 11.*
-            testbench: 9.*
-          - laravel: 10.*
-            testbench: 8.*
-    
-
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+            php: 8.1
+          # Laravel 12 requires PHP 8.2+
+          - laravel: 12.*
+            php: 8.1
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }}
 
     steps:
-      - name: Checkout code
+      - name: Set environment variables
+        run: |
+          php_version="${{ matrix.php }}"
+          laravel_version="${{ matrix.laravel }}"
+
+          php_tag="${php_version//./}"
+          laravel_tag="${laravel_version//[.*]/}"
+
+          # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
+          port=$((php_tag + laravel_tag))
+
+          echo "PHP_VERSION=$php_version" >> $GITHUB_ENV
+          echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
+          echo "PHP_TAG=$php_tag" >> $GITHUB_ENV
+          echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
+          echo "TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
+          echo "PORT=$port" >> $GITHUB_ENV
+
+      - name: Checkout package code
         uses: actions/checkout@v4
+        with:
+          path: ../package
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
           coverage: none
 
-      - name: Setup problem matchers
+      - name: Install dependencies & Laravel App
         run: |
-          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
-          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+          composer create-project "laravel/laravel:${{ matrix.laravel }}" --no-interaction .
+          composer require bref/bref:^2 --no-interaction
+          php artisan key:generate
 
-      - name: Install dependencies
+      - name: Install package from local path
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          # Add local package to composer.json
+          composer config repositories.local path ../package
+          composer require datpmwork/sls-tinker:@dev
 
-      - name: List Installed Dependencies
-        run: composer show -D
+      - name: Create Lambda Instance
+        run: |
+          docker build -t app-$PHP_TAG-$LARAVEL_TAG -f ../package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG ../
+          docker run -d --rm -p $PORT:8080 \
+            --name app-$PHP_TAG-$LARAVEL_TAG \
+            app-$PHP_TAG-$LARAVEL_TAG artisan
 
       - name: Execute tests
-        run: vendor/bin/pest --ci
+        working-directory: ../package
+        run: |
+          composer install
+          php vendor/bin/testbench package:sync-skeleton
+          ./vendor/bin/pest
+
+      - name: Stop Lambda Instance
+        run: |
+          docker stop app-$PHP_TAG-$LARAVEL_TAG
