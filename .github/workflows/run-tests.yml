@@ -44,7 +44,7 @@ jobs:
       - name: Checkout package code
         uses: actions/checkout@v4
         with:
-          path: /package
+          path: ./package
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
