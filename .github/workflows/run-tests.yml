@@ -10,6 +10,8 @@ jobs:
       matrix:
         php: [ 8.1, 8.2, 8.3, 8.4 ]
         laravel: [ 10.*, 11.*, 12.* ]
+#        php: [ 8.1 ]
+#        laravel: [ 10.* ]
         stability: [ prefer-stable ]
         exclude:
           # Laravel 11 requires PHP 8.2+
@@ -30,7 +32,7 @@ jobs:
           laravel_tag="${laravel_version//[.*]/}"
 
           # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
-          port=$((php_tag + laravel_tag))
+          port=$php_tag$laravel_tag
 
           echo "PHP_VERSION=$php_version" >> $GITHUB_ENV
           echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
@@ -42,7 +44,7 @@ jobs:
       - name: Checkout package code
         uses: actions/checkout@v4
         with:
-          path: ../package
+          path: /package
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -53,11 +55,13 @@ jobs:
 
       - name: Install dependencies & Laravel App
         run: |
-          composer create-project "laravel/laravel:${{ matrix.laravel }}" --no-interaction .
+          composer create-project "laravel/laravel:${{ matrix.laravel }}" --no-interaction app
+          cd app
           composer require bref/bref:^2 --no-interaction
           php artisan key:generate
 
       - name: Install package from local path
+        working-directory: app
         run: |
           # Add local package to composer.json
           composer config repositories.local path ../package
@@ -65,18 +69,19 @@ jobs:
 
       - name: Create Lambda Instance
         run: |
-          docker build -t app-$PHP_TAG-$LARAVEL_TAG -f ../package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG ../
+          docker build -t app-$PHP_TAG-$LARAVEL_TAG -f package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG .
           docker run -d --rm -p $PORT:8080 \
             --name app-$PHP_TAG-$LARAVEL_TAG \
             app-$PHP_TAG-$LARAVEL_TAG artisan
 
       - name: Execute tests
-        working-directory: ../package
+        working-directory: package
         run: |
           composer install
           php vendor/bin/testbench package:sync-skeleton
           ./vendor/bin/pest
 
       - name: Stop Lambda Instance
+        if: always()
         run: |
           docker stop app-$PHP_TAG-$LARAVEL_TAG
