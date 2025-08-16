@@ -24,7 +24,7 @@ trait InteractiveTinkerTesting
         $process->run();
 
         // Return both stdout and stderr combined
-        return $process->getOutput() . $process->getErrorOutput();
+        return $process->getOutput().$process->getErrorOutput();
     }
 
     protected function expectTinkerOutput(array $commands, string $expectedOutput): void

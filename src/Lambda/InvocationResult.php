@@ -13,7 +13,7 @@ class InvocationResult
     private $payload;
 
     /**
-     * @param mixed $payload
+     * @param  mixed  $payload
      */
     public function __construct(InvocationResponse $result, $payload)
     {

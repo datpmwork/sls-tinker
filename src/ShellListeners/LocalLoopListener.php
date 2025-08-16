@@ -2,16 +2,15 @@
 
 namespace DatPM\SlsTinker\ShellListeners;
 
-use Psy\Shell;
-use Psy\ExecutionClosure;
+use AsyncAws\Core\Exception\Http\ClientException;
+use DatPM\SlsTinker\Lambda\InvocationResult;
+use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
+use DatPM\SlsTinker\Shells\LambdaShell;
 use Psy\Exception\BreakException;
 use Psy\Exception\ThrowUpException;
+use Psy\ExecutionClosure;
 use Psy\ExecutionLoop\AbstractListener;
-use DatPM\SlsTinker\Shells\LambdaShell;
-use DatPM\SlsTinker\Lambda\InvocationResult;
-use DatPM\SlsTinker\Lambda\InvocationFailed;
-use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
-use AsyncAws\Core\Exception\Http\ClientException;
+use Psy\Shell;
 
 class LocalLoopListener extends AbstractListener
 {
@@ -28,7 +27,6 @@ class LocalLoopListener extends AbstractListener
     }
 
     /**
-     * @param $arguments
      * @return array|InvocationResult
      */
     public function invokeLambdaFunction($arguments)
@@ -44,12 +42,12 @@ class LocalLoopListener extends AbstractListener
             getenv('AWS_PROFILE') ?: 'default',
             15 * 60 // maximum duration on Lambda
         );
+
         return $lambda->invoke($this->lambdaFunctionName, json_encode(implode(' ', $arguments)));
     }
 
     /**
-     * @param LambdaShell $shell
-     * @param string $code
+     * @param  LambdaShell  $shell
      */
     public function onExecute(Shell $shell, string $code)
     {
@@ -66,13 +64,14 @@ class LocalLoopListener extends AbstractListener
                 '--execute',
                 $code,
                 '--context',
-                base64_encode(serialize($vars))
+                base64_encode(serialize($vars)),
             ]);
 
             $rawOutput = $result->getPayload()['output'];
 
-            if (list($output, $context) = $shell->extractContextData($rawOutput)) {
+            if ([$output, $context] = $shell->extractContextData($rawOutput)) {
                 $shell->writeStdout($output);
+
                 return "extract(unserialize(base64_decode('$context')));";
             }
 

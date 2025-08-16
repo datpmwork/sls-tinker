@@ -2,9 +2,9 @@
 
 namespace DatPM\SlsTinker;
 
+use DatPM\SlsTinker\Commands\SlsTinkerCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use DatPM\SlsTinker\Commands\SlsTinkerCommand;
 
 class SlsTinkerServiceProvider extends PackageServiceProvider
 {
