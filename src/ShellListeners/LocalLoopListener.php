@@ -43,7 +43,9 @@ class LocalLoopListener extends AbstractListener
             15 * 60 // maximum duration on Lambda
         );
 
-        return $lambda->invoke($this->lambdaFunctionName, json_encode(implode(' ', $arguments)));
+        return $lambda->invoke($this->lambdaFunctionName, json_encode([
+            'cli' => implode(' ', $arguments)
+        ]));
     }
 
     /**
@@ -67,7 +69,12 @@ class LocalLoopListener extends AbstractListener
                 base64_encode(serialize($vars)),
             ]);
 
-            $rawOutput = $result->getPayload()['output'];
+            $payload = $result->getPayload();
+            if (isset($payload['requestId'])) {
+                $rawOutput = json_decode(base64_decode($payload['output']), true)['output'];
+            } else {
+                $rawOutput = $payload['output'];
+            }
 
             if ([$output, $context] = $shell->extractContextData($rawOutput)) {
                 $shell->writeStdout($output);

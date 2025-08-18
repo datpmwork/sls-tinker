@@ -11,18 +11,21 @@ abstract class LambdaShell extends Shell
 
     protected $contextRestored = false;
 
-    public static function newLambdaShell(?Configuration $config = null, $lambdaFunctionName = '')
+    protected $platform;
+
+    public static function newLambdaShell(?Configuration $config = null, $lambdaFunctionName = '', $platform = '')
     {
         if (static::isRunningInLambda()) {
-            return new RemoteLambdaShell($config, $lambdaFunctionName);
+            return new RemoteLambdaShell($config, $lambdaFunctionName, $platform);
         }
 
-        return new LocalLambdaShell($config, $lambdaFunctionName);
+        return new LocalLambdaShell($config, $lambdaFunctionName, $platform);
     }
 
-    public function __construct(?Configuration $config = null, $lambdaFunctionName = '')
+    public function __construct(?Configuration $config = null, $lambdaFunctionName = '', $platform = '')
     {
         $this->lambdaFunctionName = $lambdaFunctionName;
+        $this->platform = $platform;
 
         parent::__construct($config);
     }
@@ -48,6 +51,9 @@ abstract class LambdaShell extends Shell
      */
     public function extractContextData($output)
     {
+        if ($this->platform == 'vapor') {
+            $output = base64_decode($output);
+        }
         $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]/s';
         preg_match($pattern, $output, $matches);
 

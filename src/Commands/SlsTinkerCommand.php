@@ -31,7 +31,7 @@ class SlsTinkerCommand extends TinkerCommand
         }
 
         $lambdaFunctionName = $this->argument('lambda');
-        $shell = LambdaShell::newLambdaShell($config, $lambdaFunctionName);
+        $shell = LambdaShell::newLambdaShell($config, $lambdaFunctionName, $this->detectServerlessProvider());
         $shell->addCommands($this->getCommands());
         $shell->setIncludes($this->argument('include'));
 
@@ -65,6 +65,19 @@ class SlsTinkerCommand extends TinkerCommand
         } finally {
             $loader->unregister();
         }
+    }
+
+    protected function detectServerlessProvider(): string
+    {
+        if (class_exists('\Laravel\Vapor\VaporServiceProvider')) {
+            return 'vapor';
+        }
+
+        if (class_exists('\Bref\Runtime\LambdaRuntime')) {
+            return 'bref';
+        }
+
+        return 'unknown';
     }
 
     protected function getArguments()
