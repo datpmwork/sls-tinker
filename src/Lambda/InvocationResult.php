@@ -21,7 +21,7 @@ abstract class InvocationResult
         $this->payload = $payload;
     }
 
-    public abstract function getOutput();
+    abstract public function getOutput();
 
     public static function new(InvocationResponse $result, $payload)
     {
