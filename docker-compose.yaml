@@ -1,0 +1,24 @@
+services:
+  db:
+    image: mysql:8
+    networks:
+      - net
+
+  test-app:
+    image: sls-tinker-test-app
+    container_name: sls-tinker-test-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - net
+    ports:
+      - 9090:8080
+    volumes:
+      - ./src:/var/task/vendor/datpmwork/sls-tinker/src
+      - ./test-app/php:/var/task/php/
+    command:
+      - artisan
+networks:
+  net:
+    driver: "bridge"

@@ -1,63 +1,66 @@
-name: run-tests
+name: Tests
 
-on:
-  push:
-    paths:
-      - '**.php'
-      - '.github/workflows/run-tests.yml'
-      - 'phpunit.xml.dist'
-      - 'composer.json'
-      - 'composer.lock'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
+  # Test with Bref platform
+  test-bref:
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        php: [8.4, 8.3]
-        laravel: [12.*, 11.*, 10.*]
-        stability: [prefer-lowest, prefer-stable]
-        include:
-          - laravel: 12.*
-            testbench: 10.*
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
+        laravel: [ 10.*, 11.*, 12.* ]
+        stability: [ prefer-stable ]
+        exclude:
+          # Laravel 11 requires PHP 8.2+
           - laravel: 11.*
-            testbench: 9.*
-          - laravel: 10.*
-            testbench: 8.*
-    
-
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+            php: 8.1
+          # Laravel 12 requires PHP 8.2+
+          - laravel: 12.*
+            php: 8.1
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - bref
 
     steps:
-      - name: Checkout code
+      - name: Checkout package code
         uses: actions/checkout@v4
+        with:
+          path: ./package
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Run tests
+        uses: ./package/.github/actions/test-action
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
-          coverage: none
+          laravel-version: ${{ matrix.laravel }}
+          platform: bref
 
-      - name: Setup problem matchers
-        run: |
-          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
-          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+  # Test with Vapor platform
+  test-vapor:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
+        laravel: [ 10.*, 11.*, 12.* ]
+        stability: [ prefer-stable ]
+        exclude:
+          # Laravel 11 requires PHP 8.2+
+          - laravel: 11.*
+            php: 8.1
+          # Laravel 12 requires PHP 8.2+
+          - laravel: 12.*
+            php: 8.1
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - vapor
 
-      - name: Install dependencies
-        run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+    steps:
+      - name: Checkout package code
+        uses: actions/checkout@v4
+        with:
+          path: ./package
 
-      - name: List Installed Dependencies
-        run: composer show -D
-
-      - name: Execute tests
-        run: vendor/bin/pest --ci
+      - name: Run tests
+        uses: ./package/.github/actions/test-action
+        with:
+          php-version: ${{ matrix.php }}
+          laravel-version: ${{ matrix.laravel }}
+          platform: vapor
