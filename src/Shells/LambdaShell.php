@@ -51,9 +51,6 @@ abstract class LambdaShell extends Shell
      */
     public function extractContextData($output)
     {
-        if ($this->platform == 'vapor') {
-            $output = base64_decode($output);
-        }
         $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]/s';
         preg_match($pattern, $output, $matches);
 
