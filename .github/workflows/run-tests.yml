@@ -28,7 +28,7 @@ jobs:
           path: ./package
 
       - name: Run tests
-        uses: ./.github/actions/test-platform
+        uses: ./package/.github/actions/test-action
         with:
           php-version: ${{ matrix.php }}
           laravel-version: ${{ matrix.laravel }}
