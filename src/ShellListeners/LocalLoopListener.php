@@ -44,7 +44,7 @@ class LocalLoopListener extends AbstractListener
         );
 
         return $lambda->invoke($this->lambdaFunctionName, json_encode([
-            'cli' => implode(' ', $arguments)
+            'cli' => implode(' ', $arguments),
         ]));
     }
 
