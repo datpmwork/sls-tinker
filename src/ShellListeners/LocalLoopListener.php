@@ -69,14 +69,7 @@ class LocalLoopListener extends AbstractListener
                 base64_encode(serialize($vars)),
             ]);
 
-            $payload = $result->getPayload();
-            if (isset($payload['requestId'])) {
-                $rawOutput = json_decode(base64_decode($payload['output']), true)['output'];
-            } else {
-                $rawOutput = $payload['output'];
-            }
-
-            if ([$output, $context] = $shell->extractContextData($rawOutput)) {
+            if ([$output, $context] = $shell->extractContextData($result->getOutput())) {
                 $shell->writeStdout($output);
 
                 return "extract(unserialize(base64_decode('$context')));";

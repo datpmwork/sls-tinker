@@ -41,7 +41,7 @@ class TinkerLambdaClient
         ]);
 
         $resultPayload = json_decode($rawResult->getPayload(), true);
-        $invocationResult = new InvocationResult($rawResult, $resultPayload);
+        $invocationResult = InvocationResult::new($rawResult, $resultPayload);
 
         $error = $rawResult->getFunctionError();
         if ($error) {

@@ -4,13 +4,13 @@ namespace DatPM\SlsTinker\Lambda;
 
 use AsyncAws\Lambda\Result\InvocationResponse;
 
-class InvocationResult
+abstract class InvocationResult
 {
     /** @var InvocationResponse */
-    private $result;
+    protected $result;
 
     /** @var mixed */
-    private $payload;
+    protected $payload;
 
     /**
      * @param  mixed  $payload
@@ -19,6 +19,17 @@ class InvocationResult
     {
         $this->result = $result;
         $this->payload = $payload;
+    }
+
+    public abstract function getOutput();
+
+    public static function new(InvocationResponse $result, $payload)
+    {
+        if (config('sls-tinker.platform') === 'vapor') {
+            return new VaporInvocationResult($result, $payload);
+        } else {
+            return new BrefInvocationResult($result, $payload);
+        }
     }
 
     public function getLogs(): string

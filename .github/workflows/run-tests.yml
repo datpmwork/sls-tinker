@@ -46,7 +46,7 @@ jobs:
           echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
           echo "PHP_TAG=$php_tag" >> $GITHUB_ENV
           echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
-          echo "TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
+          echo "SLS_TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
           echo "PORT=$port" >> $GITHUB_ENV
 
       - name: Checkout package code
@@ -133,7 +133,7 @@ jobs:
         run: |
           composer install
           php vendor/bin/testbench package:sync-skeleton
-          ./vendor/bin/pest
+          SLS_PLATFORM=${{ matrix.platform }} ./vendor/bin/pest
 
       - name: Stop Lambda Instance
 #        if: always()
