@@ -1,0 +1,137 @@
+name: 'Test Platform'
+description: 'Run tests for a specific PHP/Laravel/Platform combination'
+
+inputs:
+  php-version:
+    description: 'PHP version'
+    required: true
+  laravel-version:
+    description: 'Laravel version'
+    required: true
+  platform:
+    description: 'Platform (bref or vapor)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set environment variables
+      shell: bash
+      run: |
+        php_version="${{ inputs.php-version }}"
+        laravel_version="${{ inputs.laravel-version }}"
+        platform="${{ inputs.platform }}"
+
+        php_tag="${php_version//./}"
+        laravel_tag="${laravel_version//[.*]/}"
+
+        # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
+        base_port=$php_tag$laravel_tag
+        # Add offset based on platform
+        if [[ "$platform" == "vapor" ]]; then
+          port=$((base_port + 1))
+        elif [[ "$platform" == "bref" ]]; then
+          port=$((base_port + 2))
+        else
+          port=$base_port
+        fi
+
+        echo "PHP_VERSION=$php_version" >> $GITHUB_ENV
+        echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
+        echo "PHP_TAG=$php_tag" >> $GITHUB_ENV
+        echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
+        echo "SLS_TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
+        echo "PORT=$port" >> $GITHUB_ENV
+        echo "PLATFORM=$platform" >> $GITHUB_ENV
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+        coverage: none
+
+    - name: Install dependencies & Laravel App
+      shell: bash
+      run: |
+        composer create-project "laravel/laravel:${{ inputs.laravel-version }}" --no-interaction app
+        cd app
+        php artisan key:generate
+
+    - name: Install Bref
+      if: inputs.platform == 'bref'
+      shell: bash
+      run: |
+        cd app
+        composer require bref/bref:^2 --no-interaction
+
+    - name: Install Vapor Core
+      if: inputs.platform == 'vapor'
+      shell: bash
+      run: |
+        cd app
+        composer require laravel/vapor-core --no-interaction
+        composer global require laravel/vapor-cli
+        mkdir -p ~/.laravel-vapor
+        cat <<EOF > ~/.laravel-vapor/config.json
+        {
+            "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDdjMmVlODhmYzkyNjQyNjg1YWI5N2FhMjIzNGU2MjYwZWMyM2RjYWQzYjJmOWM0YjVlY2JjY2YwZTU3MzJhNDI3NDRiZDI1NWIwYjg0NDEiLCJpYXQiOjE3NTUzNjQzOTIuMTE3NzExLCJuYmYiOjE3NTUzNjQzOTIuMTE3NzE0LCJleHAiOjE5MTMxMzA3OTIuMTA3ODU3LCJzdWIiOiI2ODk5OSIsInNjb3BlcyI6WyIqIl19.Ma0-GJjBvqs2irvHbW5oOrEJn0I-FCjSXV-zK20LIzwbgSfZNTMvViheazfO1roOow1UyANmzoPGnTyo2EndFM6G0p-UDiB03ce-36Bgj7JKOJ_156omPXsqrPhN7P9nDER1zmas9gM4UHwlHW2k67U9v050FjVT_TBeFvVe6gtWPKLZdTLTT5xmaqZvnAWbNUO_wq4exnmPnzFYVXpDYuuD2fgtzPXAzXauvm1BGR4YBMGvzSx1JCyc-OBnEwdsQIMAomU6lHrybQJzYefHugNx6oHIe2BQtMblsWQOPPSRqD5ciGTnzWdQ1PxBYd7FS3jWRoqv4FWJuTJo7krIPYiBfQtsUXaCnzOyx8pLpFiOCQE5HeldtdmT4KH5VXkYWsZKoA3_gdnTwyeoBaP8TvKt0mE6a6mQhMzasUkPk8-lASsRBHti5dqEu8FEQWWdEGm4--fzH7bN7i2vMsR9nUCXrJx0lLL7e3VL9j6igAKqQssK8gkxhd4q38g1L2esbdkNa6nbv8fGfPaWcOlbEyKog19pRIblCDj3wdtXNJjts1FNmxNSeYuxjKh5Wselx_PRkhLEbFoAIMmWbBEGdVC0p_gByt7yL3-wOFD69PA2SoctyoSKnae9E7w6V_OeDKrcXimbZugW6O0oCLbzhFslcZ0rMbaN0W3r-CRYUDA",
+            "team": 83505
+        }
+        EOF
+
+    - name: Install package from local path
+      shell: bash
+      working-directory: app
+      run: |
+        # Add local package to composer.json
+        composer config repositories.local path ../package
+        composer require datpmwork/sls-tinker:@dev
+        rm -rf vendor/datpmwork/sls-tinker
+        cp -r ../package vendor/datpmwork/sls-tinker
+
+    - name: Vapor Build
+      shell: bash
+      working-directory: app
+      if: inputs.platform == 'vapor'
+      run: |
+        cat <<EOF > vapor.yml
+        id: 72679
+        name: vapor
+        environments:
+          production:
+            memory: 1024
+            cli-memory: 512
+            runtime: 'php-8.4:al2'
+            build:
+              - 'rm -rf bootstrap/cache/*'
+              - 'composer install --no-dev'
+              - 'php artisan event:cache'
+                # - 'npm ci && npm run build && rm -rf node_modules'
+        EOF
+        ~/.composer/vendor/bin/vapor build production || exit 0
+
+    - name: Create Docker Instance
+      shell: bash
+      run: |
+        if [[ "${{ inputs.platform }}" == "bref" ]]; then
+          docker build -t ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG -f package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG --target ${{ inputs.platform }} .
+          docker run -d --rm -p $PORT:8080 --name ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG artisan
+        elif [[ "${{ inputs.platform }}" == "vapor" ]]; then
+          docker build -t ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG -f package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG --target ${{ inputs.platform }} .
+          docker run -d --rm -p $PORT:8080 -e VAPOR_SSM_PATH=test -e LAMBDA_TASK_ROOT=/var/task -e APP_RUNNING_IN_CONSOLE=true --name ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG artisan
+        fi
+
+    - name: Execute tests
+      shell: bash
+      working-directory: package
+      run: |
+        composer install
+        php vendor/bin/testbench package:sync-skeleton
+        SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/pest
+
+    - name: Stop Lambda Instance
+      if: always()
+      shell: bash
+      run: |
+        docker stop ${{ inputs.platform }}-$PHP_TAG-$LARAVEL_TAG

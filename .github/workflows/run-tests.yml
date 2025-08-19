@@ -3,14 +3,14 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  test:
+  # Test with Bref platform
+  test-bref:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         php: [ 8.1, 8.2, 8.3, 8.4 ]
         laravel: [ 10.*, 11.*, 12.* ]
-        platform: [ vapor, bref ]
         stability: [ prefer-stable ]
         exclude:
           # Laravel 11 requires PHP 8.2+
@@ -19,123 +19,48 @@ jobs:
           # Laravel 12 requires PHP 8.2+
           - laravel: 12.*
             php: 8.1
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.platform }}
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - bref
 
     steps:
-      - name: Set environment variables
-        run: |
-          php_version="${{ matrix.php }}"
-          laravel_version="${{ matrix.laravel }}"
-          platform="${{ matrix.platform }}"
-
-          php_tag="${php_version//./}"
-          laravel_tag="${laravel_version//[.*]/}"
-
-          # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
-          base_port=$php_tag$laravel_tag
-          # Add offset based on platform
-          if [[ "$platform" == "vapor" ]]; then
-            port=$((base_port + 1))
-          elif [[ "$platform" == "bref" ]]; then
-            port=$((base_port + 2))
-          else
-            port=$base_port
-          fi
-
-          echo "PHP_VERSION=$php_version" >> $GITHUB_ENV
-          echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
-          echo "PHP_TAG=$php_tag" >> $GITHUB_ENV
-          echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
-          echo "SLS_TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
-          echo "PORT=$port" >> $GITHUB_ENV
-
       - name: Checkout package code
         uses: actions/checkout@v4
         with:
           path: ./package
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Run tests
+        uses: ./.github/actions/test-platform
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
-          coverage: none
+          laravel-version: ${{ matrix.laravel }}
+          platform: bref
 
-      - name: Install dependencies & Laravel App
-        run: |
-          composer create-project "laravel/laravel:${{ matrix.laravel }}" --no-interaction app
-          cd app
-          php artisan key:generate
+  # Test with Vapor platform
+  test-vapor:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ 8.1, 8.2, 8.3, 8.4 ]
+        laravel: [ 10.*, 11.*, 12.* ]
+        stability: [ prefer-stable ]
+        exclude:
+          # Laravel 11 requires PHP 8.2+
+          - laravel: 11.*
+            php: 8.1
+          # Laravel 12 requires PHP 8.2+
+          - laravel: 12.*
+            php: 8.1
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - vapor
 
-      - name: Install Bref
-        if: matrix.platform == 'bref'
-        run: |
-          cd app
-          composer require bref/bref:^2 --no-interaction
+    steps:
+      - name: Checkout package code
+        uses: actions/checkout@v4
+        with:
+          path: ./package
 
-      - name: Install Vapor Core
-        if: matrix.platform == 'vapor'
-        run: |
-          cd app
-          composer require laravel/vapor-core --no-interaction
-          composer global require laravel/vapor-cli
-          mkdir -p ~/.laravel-vapor
-          cat <<EOF > ~/.laravel-vapor/config.json
-          {
-              "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDdjMmVlODhmYzkyNjQyNjg1YWI5N2FhMjIzNGU2MjYwZWMyM2RjYWQzYjJmOWM0YjVlY2JjY2YwZTU3MzJhNDI3NDRiZDI1NWIwYjg0NDEiLCJpYXQiOjE3NTUzNjQzOTIuMTE3NzExLCJuYmYiOjE3NTUzNjQzOTIuMTE3NzE0LCJleHAiOjE5MTMxMzA3OTIuMTA3ODU3LCJzdWIiOiI2ODk5OSIsInNjb3BlcyI6WyIqIl19.Ma0-GJjBvqs2irvHbW5oOrEJn0I-FCjSXV-zK20LIzwbgSfZNTMvViheazfO1roOow1UyANmzoPGnTyo2EndFM6G0p-UDiB03ce-36Bgj7JKOJ_156omPXsqrPhN7P9nDER1zmas9gM4UHwlHW2k67U9v050FjVT_TBeFvVe6gtWPKLZdTLTT5xmaqZvnAWbNUO_wq4exnmPnzFYVXpDYuuD2fgtzPXAzXauvm1BGR4YBMGvzSx1JCyc-OBnEwdsQIMAomU6lHrybQJzYefHugNx6oHIe2BQtMblsWQOPPSRqD5ciGTnzWdQ1PxBYd7FS3jWRoqv4FWJuTJo7krIPYiBfQtsUXaCnzOyx8pLpFiOCQE5HeldtdmT4KH5VXkYWsZKoA3_gdnTwyeoBaP8TvKt0mE6a6mQhMzasUkPk8-lASsRBHti5dqEu8FEQWWdEGm4--fzH7bN7i2vMsR9nUCXrJx0lLL7e3VL9j6igAKqQssK8gkxhd4q38g1L2esbdkNa6nbv8fGfPaWcOlbEyKog19pRIblCDj3wdtXNJjts1FNmxNSeYuxjKh5Wselx_PRkhLEbFoAIMmWbBEGdVC0p_gByt7yL3-wOFD69PA2SoctyoSKnae9E7w6V_OeDKrcXimbZugW6O0oCLbzhFslcZ0rMbaN0W3r-CRYUDA",
-              "team": 83505
-          }
-          EOF
-
-      - name: Install package from local path
-        working-directory: app
-        run: |
-          # Add local package to composer.json
-          composer config repositories.local path ../package
-          composer require datpmwork/sls-tinker:@dev
-          rm -rf vendor/datpmwork/sls-tinker
-          cp -r ../package vendor/datpmwork/sls-tinker
-
-      - name: Vapor Build
-        working-directory: app
-        if: matrix.platform == 'vapor'
-        run: |
-          cat <<EOF > vapor.yml
-          id: 72679
-          name: vapor
-          environments:
-            production:
-              memory: 1024
-              cli-memory: 512
-              runtime: 'php-8.4:al2'
-              build:
-                - 'rm -rf bootstrap/cache/*'
-                - 'composer install --no-dev'
-                - 'php artisan event:cache'
-                  # - 'npm ci && npm run build && rm -rf node_modules'
-          EOF
-          ~/.composer/vendor/bin/vapor build production || exit 0
-
-      - name: Create Bref Instance
-        if: matrix.platform == 'bref'
-        run: |
-          docker build -t ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG -f package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG --target ${{ matrix.platform }} .
-          docker run -d --rm -p $PORT:8080 --name ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG artisan
-
-      - name: Create Vapor Instance
-        if: matrix.platform == 'vapor'
-        run: |
-          docker build -t ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG -f package/tests/Dockerfile --build-arg PHP_VERSION=$PHP_TAG --target ${{ matrix.platform }} .
-          docker run -d --rm -p $PORT:8080 -e VAPOR_SSM_PATH=test -e LAMBDA_TASK_ROOT=/var/task -e APP_RUNNING_IN_CONSOLE=true --name ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG artisan
-
-      - name: Execute tests
-        working-directory: package
-        run: |
-          composer install
-          php vendor/bin/testbench package:sync-skeleton
-          SLS_PLATFORM=${{ matrix.platform }} ./vendor/bin/pest
-
-      - name: Stop Lambda Instance
-#        if: always()
-        run: |
-          docker stop ${{ matrix.platform }}-$PHP_TAG-$LARAVEL_TAG
+      - name: Run tests
+        uses: ./package/.github/actions/test-action
+        with:
+          php-version: ${{ matrix.php }}
+          laravel-version: ${{ matrix.laravel }}
+          platform: vapor
