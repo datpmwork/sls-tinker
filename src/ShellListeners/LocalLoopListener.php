@@ -69,9 +69,9 @@ class LocalLoopListener extends AbstractListener
             ]);
 
             if ([$output, $context] = $shell->extractContextData($result->getOutput())) {
-                $shell->writeStdout($output);
+                $shell->writeStdout(trim($output, "\r\n"));
 
-                return "extract(unserialize(base64_decode('$context')));";
+                return "extract(unserialize(base64_decode('$context'))); ";
             }
 
             return ExecutionClosure::NOOP_INPUT;

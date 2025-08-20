@@ -47,11 +47,22 @@ abstract class LambdaShell extends Shell
     }
 
     /**
+     * @param  $context
+     * @return void
+     */
+    public function writeReturnValue($ret, bool $rawOutput = false)
+    {
+        $context = base64_encode(serialize($ret));
+
+        $this->writeStdout("[RETURN]{$context}[END_RETURN]");
+    }
+
+    /**
      * @return array
      */
     public function extractContextData($output)
     {
-        $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]/s';
+        $pattern = '/\[CONTEXT\](.*?)\[END_CONTEXT\]\[RETURN\](.*?)\[END_RETURN\]/s';
         preg_match($pattern, $output, $matches);
 
         return empty($matches) ? null : [$matches[1], $matches[2]];
