@@ -13,12 +13,12 @@ class TinkerLambdaClient
     public function __construct(string $region, string $profile)
     {
         $lambdaConfig = [
-            'region'  => $region,
+            'region' => $region,
             'profile' => $profile,
         ];
 
         $lambdaEndpoint = config('sls-tinker.lambda_endpoint');
-        if (!empty($lambdaEndpoint)) {
+        if (! empty($lambdaEndpoint)) {
             $lambdaConfig['endpoint'] = $lambdaEndpoint;
         }
 
