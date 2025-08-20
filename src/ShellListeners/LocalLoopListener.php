@@ -40,7 +40,6 @@ class LocalLoopListener extends AbstractListener
         $lambda = new TinkerLambdaClient(
             getenv('AWS_DEFAULT_REGION') ?: 'us-east-1',
             getenv('AWS_PROFILE') ?: 'default',
-            15 * 60 // maximum duration on Lambda
         );
 
         return $lambda->invoke($this->lambdaFunctionName, json_encode([

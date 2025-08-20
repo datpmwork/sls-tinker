@@ -10,6 +10,14 @@ return [
     'lambda_endpoint' => env('SLS_TINKER_LAMBDA_ENDPOINT', ''),
 
     /**
+     * Use to custom lambda endpoint.
+     * Leave it empty if you are using the default AWS Lambda endpoint.
+     * If you are using a custom endpoint, set it to the URL of your custom endpoint
+     * Example: 'http://localhost:9090'
+     */
+    'lambda_timeout' => env('SLS_TINKER_LAMBDA_TIMEOUT', 60),
+
+    /**
      * Use to set the platform for SLS Tinker.
      * The platform can be 'bref' or 'vapor'.
      * - 'bref' is used for AWS Lambda with Bref.

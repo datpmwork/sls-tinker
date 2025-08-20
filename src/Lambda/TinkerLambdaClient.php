@@ -10,17 +10,23 @@ class TinkerLambdaClient
     /** @var LambdaClient */
     private $lambda;
 
-    public function __construct(string $region, string $profile, int $timeout = 60)
+    public function __construct(string $region, string $profile)
     {
+        $lambdaConfig = [
+            'region'  => $region,
+            'profile' => $profile,
+        ];
+
+        $lambdaEndpoint = config('sls-tinker.lambda_endpoint');
+        if (!empty($lambdaEndpoint)) {
+            $lambdaConfig['endpoint'] = $lambdaEndpoint;
+        }
+
         $this->lambda = new LambdaClient(
-            [
-                'region' => $region,
-                'profile' => $profile,
-                'endpoint' => config('sls-tinker.lambda_endpoint'),
-            ],
+            $lambdaConfig,
             null,
             HttpClient::create([
-                'timeout' => $timeout,
+                'timeout' => config('sls-tinker.lambda_timeout'),
             ])
         );
     }
