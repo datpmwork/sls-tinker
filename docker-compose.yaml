@@ -4,21 +4,46 @@ services:
     networks:
       - net
 
-  test-app:
-    image: sls-tinker-test-app
-    container_name: sls-tinker-test-app
+  bref-app:
+    image: bref-app
+    container_name: bref-app
     build:
       context: .
       dockerfile: Dockerfile
+      target: bref
+      args:
+        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-81}
+        PHP_VERSION: ${PHP_VERSION:-8.1}
+        PHP_LARAVEL_TAG: ${PHP_LARAVEL_TAG:-11.*}
     networks:
       - net
     ports:
       - 9090:8080
     volumes:
       - ./src:/var/task/vendor/datpmwork/sls-tinker/src
-      - ./test-app/php:/var/task/php/
     command:
       - artisan
+
+  vapor-app:
+    image: vapor-app
+    container_name: vapor-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: vapor
+      args:
+        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-81}
+        PHP_VERSION: ${PHP_VERSION:-8.1}
+        PHP_LARAVEL_TAG: ${PHP_LARAVEL_TAG:-11.*}
+    networks:
+      - net
+    ports:
+      - 9091:8080
+    volumes:
+      - ./src:/var/task/vendor/datpmwork/sls-tinker/src
+    command:
+      - artisan
+
 networks:
   net:
     driver: "bridge"

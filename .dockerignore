@@ -1,3 +1,5 @@
 vendor/
-test-app/vendor/
 package/
+build/
+.phpunit.cache/
+.git/

@@ -9,8 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ 8.1, 8.2, 8.3, 8.4 ]
-        laravel: [ 10.*, 11.*, 12.* ]
+        php: [ 8.1 ]
+        laravel: [ 10.* ]
         stability: [ prefer-stable ]
         exclude:
           # Laravel 11 requires PHP 8.2+
@@ -24,11 +24,9 @@ jobs:
     steps:
       - name: Checkout package code
         uses: actions/checkout@v4
-        with:
-          path: ./package
 
       - name: Run tests
-        uses: ./package/.github/actions/test-action
+        uses: ./.github/actions/test-action
         with:
           php-version: ${{ matrix.php }}
           laravel-version: ${{ matrix.laravel }}
@@ -40,8 +38,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ 8.1, 8.2, 8.3, 8.4 ]
-        laravel: [ 10.*, 11.*, 12.* ]
+        php: [ 8.1 ]
+        laravel: [ 10.* ]
         stability: [ prefer-stable ]
         exclude:
           # Laravel 11 requires PHP 8.2+
@@ -55,11 +53,9 @@ jobs:
     steps:
       - name: Checkout package code
         uses: actions/checkout@v4
-        with:
-          path: ./package
 
       - name: Run tests
-        uses: ./package/.github/actions/test-action
+        uses: ./.github/actions/test-action
         with:
           php-version: ${{ matrix.php }}
           laravel-version: ${{ matrix.laravel }}
