@@ -50,7 +50,7 @@ abstract class LambdaShell extends Shell
      * @param  $context
      * @return void
      */
-    public function writeReturnValue($ret, bool $rawOutput = false)
+    public function writeReturnValueData($ret)
     {
         $context = base64_encode(serialize($ret));
 
@@ -62,10 +62,10 @@ abstract class LambdaShell extends Shell
      */
     public function extractContextData($output)
     {
-        $pattern = '/\[CONTEXT\](.*?)\[END_CONTEXT\]\[RETURN\](.*?)\[END_RETURN\]/s';
+        $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]\n\[RETURN\](.*?)\[END_RETURN\]/s';
         preg_match($pattern, $output, $matches);
 
-        return empty($matches) ? null : [$matches[1], $matches[2]];
+        return empty($matches) ? null : [$matches[1], $matches[2], $matches[3]];
     }
 
     public function restoreContextData($context)

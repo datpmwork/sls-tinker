@@ -48,7 +48,7 @@ class TestCase extends Orchestra
         return $process->getOutput().$process->getErrorOutput();
     }
 
-    protected function extractEchoOutput(string $fullOutput): string
+    protected function extractEchoOutput(string $fullOutput): array
     {
         // Strip ANSI color codes
         $clean = preg_replace('/\e[\[\]()#;?0-9]*[a-zA-Z=]/', '', $fullOutput);
@@ -74,7 +74,6 @@ class TestCase extends Orchestra
             // Filter out prompt/response/exit lines
             if ($trimmed === ''
                 || str_starts_with($trimmed, '>')
-                || str_starts_with($trimmed, '=')
                 || str_starts_with($trimmed, 'INFO  Goodbye.')) {
                 continue;
             }
@@ -83,7 +82,7 @@ class TestCase extends Orchestra
             $resultLines[] = $trimmed;
         }
 
-        return implode("\n", $resultLines);
+        return $resultLines;
     }
 
     protected function expectTinkerOutput(string $lambdaFunction, array $commands, $expect): void

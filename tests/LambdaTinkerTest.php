@@ -10,7 +10,15 @@ it('tests variable persistence across commands', function () {
         '$c = $a + $b;',
         'echo $c;',
     ], function ($output) {
-        expect($output)->toEqual("Laravel 10\n3");
+        expect($output)->toMatchArray([
+            '= "Laravel"',
+            '= "10"',
+            'Laravel 10⏎',
+            '= 1',
+            '= 2',
+            '= 3',
+            '3⏎',
+        ]);
     });
 });
 
@@ -20,8 +28,8 @@ it('tests wrong variable usage across commands', function () {
         'echo $c;',
         'echo "a = $a";',
     ], function ($output) {
-        expect($output)->toContain('Undefined variable $c')
-            ->and($output)->toContain('a = 1');
+        expect(implode("\n", $output))->toContain('Undefined variable $c.')
+            ->toContain('a = 1');
     });
 });
 
@@ -35,6 +43,6 @@ it('should fail when lambda function not found', function () {
         '$c = $a + $b;',
         'echo $c;',
     ], function ($output) {
-        expect($output)->toContain('HTTP 404 returned');
+        expect(implode("\n", $output))->toContain('HTTP 404 returned');
     });
 });

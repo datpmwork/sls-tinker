@@ -52,7 +52,7 @@ class SlsTinkerCommand extends TinkerCommand
 
             try {
                 $shell->setOutput($this->output);
-                $shell->writeReturnValue($shell->execute($code));
+                $shell->writeReturnValueData($shell->execute($code));
             } finally {
                 $loader->unregister();
             }

@@ -12,15 +12,15 @@ services:
       dockerfile: Dockerfile
       target: bref
       args:
-        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-81}
-        PHP_VERSION: ${PHP_VERSION:-8.1}
+        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-8.1}
+        PHP_VERSION: ${PHP_VERSION:-81}
         PHP_LARAVEL_TAG: ${PHP_LARAVEL_TAG:-11.*}
     networks:
       - net
     ports:
       - 9090:8080
     volumes:
-      - ./src:/var/task/vendor/datpmwork/sls-tinker/src
+      - ./:/var/task/vendor/datpmwork/sls-tinker/
     command:
       - artisan
 
@@ -32,15 +32,15 @@ services:
       dockerfile: Dockerfile
       target: vapor
       args:
-        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-81}
-        PHP_VERSION: ${PHP_VERSION:-8.1}
+        PHP_VERSION_TAG: ${PHP_VERSION_TAG:-8.1}
+        PHP_VERSION: ${PHP_VERSION:-81}
         PHP_LARAVEL_TAG: ${PHP_LARAVEL_TAG:-11.*}
     networks:
       - net
     ports:
       - 9091:8080
     volumes:
-      - ./src:/var/task/vendor/datpmwork/sls-tinker/src
+      - ./:/var/task/vendor/datpmwork/sls-tinker/
     command:
       - artisan
 
