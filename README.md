@@ -15,25 +15,34 @@ Unlike traditional approaches that require web interfaces or SSH access, this pa
 
 You can support this project via [GitHub Sponsors](https://github.com/sponsors/datpmwork).
 
+## Installation
+
+You can install the package via composer:
+
+```bash
+composer require datpmwork/sls-tinker
+```
+
 ## 🚀 How It Works
 
 ```bash
 # Start local tinker that connects to your Lambda
-php artisan sls:tinker your-lambda-function-name
+bash-4.2# php artisan sls-tinker lambda-function-name
+> Psy Shell v0.11.22 (PHP 8.2.29 — cli) by Justin Hileman
+> You're running Tinker in AWS Lambda
+> Target Lambda: lambda-function-name
 ```
 
-# All commands execute on Lambda but feel completely local
-
 ```php
-> $a = 1
-= 1
+> $a = 1 # Assign variable
+= 1 # Result from remote execution
 
-> $a + 3
-= 4
+> $a + 3 # Use variable in next command
+= 4 # Result from remote execution
 
-> $u = User::first()
+> $u = User::first() # Use Eloquent model
 [!] Aliasing 'User' to 'App\Models\User' for this Tinker session.⏎
-= App\Models\User {#6616
+= App\Models\User {#6616  # Eloquent model fetched from remote
     id: 1,
     name: "Pham Minh Dat",
     email: "datpm@example.com",
@@ -43,11 +52,11 @@ php artisan sls:tinker your-lambda-function-name
     avatar: null,
   }
 
-> $u->update(['name' => 'datpmwork'])
-= true
+> $u->update(['name' => 'datpmwork']) # Update model attribute
+= true # Result from remote execution
 
 > $u
-= App\Models\User {#6638
+= App\Models\User {#6638  # Updated model fetched from remote
     id: 1,
     name: "datpmwork",
     email: "datpm@example.com",
@@ -84,14 +93,6 @@ php artisan sls:tinker your-lambda-function-name
 - Seamless state management across command invocations
 - Zero learning curve - it's just Tinker
 - Simple configuration and authentication
-
-## Installation
-
-You can install the package via composer:
-
-```bash
-composer require datpmwork/sls-tinker
-```
 
 You can publish the config file with:
 
