@@ -2,9 +2,9 @@
 
 namespace DatPM\SlsTinker\Shells;
 
+use Illuminate\Console\OutputStyle;
 use Psy\Configuration;
 use Psy\Shell;
-use Illuminate\Console\OutputStyle;
 
 abstract class LambdaShell extends Shell
 {
@@ -40,7 +40,6 @@ abstract class LambdaShell extends Shell
 
     /**
      * The output interface implementation.
-     *
      */
     public function setRawOutput($rawOutput)
     {
@@ -52,10 +51,7 @@ abstract class LambdaShell extends Shell
         return $this->rawOutput;
     }
 
-    protected function writeStartupMessage()
-    {
-
-    }
+    protected function writeStartupMessage() {}
 
     /**
      * @param  $context
