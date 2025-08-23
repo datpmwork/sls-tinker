@@ -14,4 +14,11 @@ class LocalLambdaShell extends LambdaShell
 
         return $listeners;
     }
+
+    protected function writeStartupMessage()
+    {
+        parent::writeStartupMessage();
+
+        $this->getRawOutput()->writeln("<info>You're running Tinker in AWS Lambda\nTarget Lambda: </info>"."<comment>{$this->lambdaFunctionName}</comment>");
+    }
 }

@@ -25,20 +25,37 @@ php artisan sls:tinker your-lambda-function-name
 # All commands execute on Lambda but feel completely local
 
 ```php
->>> $user = User::find(1)                    // Executes on Lambda
-=> App\Models\User {#1234                    // Result from Lambda
-     id: 1,
-     name: "John Doe",
-     email: "john@example.com",
-   }
+> $a = 1
+= 1
 
->>> $user->posts->count()                    // State preserved from previous command
-=> 5                                         // $user variable still available
+> $a + 3
+= 4
 
->>> $posts = $user->posts()->latest()->take(3)->get()  // Chaining works perfectly
-=> Illuminate\Database\Eloquent\Collection {#5678
-     all: [/* 3 posts */]
-   }
+> $u = User::first()
+[!] Aliasing 'User' to 'App\Models\User' for this Tinker session.⏎
+= App\Models\User {#6616
+    id: 1,
+    name: "Pham Minh Dat",
+    email: "datpm@example.com",
+    email_verified_at: null,
+    created_at: "2025-02-06 14:57:18",
+    updated_at: "2025-02-06 14:57:16",
+    avatar: null,
+  }
+
+> $u->update(['name' => 'datpmwork'])
+= true
+
+> $u
+= App\Models\User {#6638
+    id: 1,
+    name: "datpmwork",
+    email: "datpm@example.com",
+    email_verified_at: null,
+    created_at: "2025-02-06 14:57:18",
+    updated_at: "2025-08-23 15:36:57",
+    avatar: null,
+  }
 ```
 
 ## ✨ Key Features
@@ -80,13 +97,6 @@ You can publish the config file with:
 
 ```bash
 php artisan vendor:publish --tag="sls-tinker-config"
-```
-
-This is the contents of the published config file:
-
-```php
-return [
-];
 ```
 
 ## Testing

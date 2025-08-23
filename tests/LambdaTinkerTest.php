@@ -11,6 +11,8 @@ it('tests variable persistence across commands', function () {
         'echo $c;',
     ], function ($output) {
         expect($output)->toMatchArray([
+            'You\'re running Tinker in AWS Lambda',
+            'Target Lambda: function',
             '= "Laravel"',
             '= "10"',
             'Laravel 10⏎',

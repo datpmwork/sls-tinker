@@ -4,6 +4,7 @@ namespace DatPM\SlsTinker\Shells;
 
 use Psy\Configuration;
 use Psy\Shell;
+use Illuminate\Console\OutputStyle;
 
 abstract class LambdaShell extends Shell
 {
@@ -12,6 +13,8 @@ abstract class LambdaShell extends Shell
     protected $contextRestored = false;
 
     protected $platform;
+
+    protected $rawOutput;
 
     public static function newLambdaShell(?Configuration $config = null, $lambdaFunctionName = '', $platform = '')
     {
@@ -33,6 +36,25 @@ abstract class LambdaShell extends Shell
     protected static function isRunningInLambda(): bool
     {
         return ! empty(env('AWS_LAMBDA_RUNTIME_API'));
+    }
+
+    /**
+     * The output interface implementation.
+     *
+     */
+    public function setRawOutput($rawOutput)
+    {
+        $this->rawOutput = $rawOutput;
+    }
+
+    public function getRawOutput(): OutputStyle
+    {
+        return $this->rawOutput;
+    }
+
+    protected function writeStartupMessage()
+    {
+
     }
 
     /**

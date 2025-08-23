@@ -34,6 +34,7 @@ class SlsTinkerCommand extends TinkerCommand
         $shell = LambdaShell::newLambdaShell($config, $lambdaFunctionName, $this->detectServerlessProvider());
         $shell->addCommands($this->getCommands());
         $shell->setIncludes($this->argument('include'));
+        $shell->setRawOutput($this->output);
 
         $path = Env::get('COMPOSER_VENDOR_DIR', $this->getLaravel()->basePath().DIRECTORY_SEPARATOR.'vendor');
 
