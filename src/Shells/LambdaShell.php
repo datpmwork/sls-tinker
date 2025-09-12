@@ -2,8 +2,8 @@
 
 namespace DatPM\SlsTinker\Shells;
 
-use Psy\CodeCleaner\NoReturnValue;
 use Illuminate\Console\OutputStyle;
+use Psy\CodeCleaner\NoReturnValue;
 use Psy\Configuration;
 use Psy\Shell;
 
@@ -79,13 +79,10 @@ abstract class LambdaShell extends Shell
         $indent = \str_repeat(' ', \strlen($prompt));
         $formatted = $this->presentValue($ret);
         $formattedRetValue = \sprintf('<whisper>%s</whisper>', $prompt);
-        $formatted = $formattedRetValue . str_replace(\PHP_EOL, \PHP_EOL . $indent, $formatted);
+        $formatted = $formattedRetValue.str_replace(\PHP_EOL, \PHP_EOL.$indent, $formatted);
         $this->writeStdout("[RETURN]{$formatted}[END_RETURN]");
     }
 
-    /**
-     * @return array
-     */
     /**
      * @return list<string>|null
      */
