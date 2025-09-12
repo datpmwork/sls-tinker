@@ -13,13 +13,13 @@ it('tests variable persistence across commands', function () {
         expect($output)->toMatchArray([
             'You\'re running Tinker in AWS Lambda',
             'Target Lambda: function',
-            '= "Laravel"',
-            '= "10"',
-            'Laravel 10⏎',
-            '= 1',
-            '= 2',
-            '= 3',
-            '3⏎',
+            '<whisper>= </whisper>"Laravel"',
+            '<whisper>= </whisper>"10"',
+            'Laravel 10',
+            '<whisper>= </whisper>1',
+            '<whisper>= </whisper>2',
+            '<whisper>= </whisper>3',
+            '3',
         ]);
     });
 });

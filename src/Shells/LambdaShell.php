@@ -2,19 +2,20 @@
 
 namespace DatPM\SlsTinker\Shells;
 
+use Psy\CodeCleaner\NoReturnValue;
 use Illuminate\Console\OutputStyle;
 use Psy\Configuration;
 use Psy\Shell;
 
 abstract class LambdaShell extends Shell
 {
-    protected $lambdaFunctionName;
+    protected string $platform;
 
-    protected $contextRestored = false;
+    protected string $lambdaFunctionName;
 
-    protected $platform;
+    protected bool $contextRestored = false;
 
-    protected $rawOutput;
+    protected OutputStyle $rawOutput;
 
     public static function newLambdaShell(?Configuration $config = null, $lambdaFunctionName = '', $platform = '')
     {
@@ -35,7 +36,7 @@ abstract class LambdaShell extends Shell
 
     protected static function isRunningInLambda(): bool
     {
-        return ! empty(env('AWS_LAMBDA_RUNTIME_API'));
+        return ! empty($_SERVER['AWS_LAMBDA_RUNTIME_API']);
     }
 
     /**
@@ -70,20 +71,51 @@ abstract class LambdaShell extends Shell
      */
     public function writeReturnValueData($ret)
     {
-        $context = base64_encode(serialize($ret));
+        if ($ret instanceof NoReturnValue) {
+            return;
+        }
 
-        $this->writeStdout("[RETURN]{$context}[END_RETURN]");
+        $prompt = '= ';
+        $indent = \str_repeat(' ', \strlen($prompt));
+        $formatted = $this->presentValue($ret);
+        $formattedRetValue = \sprintf('<whisper>%s</whisper>', $prompt);
+        $formatted = $formattedRetValue . str_replace(\PHP_EOL, \PHP_EOL . $indent, $formatted);
+        $this->writeStdout("[RETURN]{$formatted}[END_RETURN]");
     }
 
     /**
      * @return array
      */
-    public function extractContextData($output)
+    /**
+     * @return list<string>|null
+     */
+    public function extractContextData(string $output): ?array
     {
-        $pattern = '/(.*(?:\r?\n.*)*)\[CONTEXT\](.*?)\[END_CONTEXT\]\n\[RETURN\](.*?)\[END_RETURN\]/s';
-        preg_match($pattern, $output, $matches);
+        $output = trim($output);
+        // First, extract RETURN section if it exists
+        if (preg_match('/\[RETURN\](.*?)\[END_RETURN\]/s', $output, $returnMatches)) {
+            $returnValue = $returnMatches[1];
+            // Remove RETURN section to work with the rest
+            $output = (string) preg_replace('/\[RETURN\].*?\[END_RETURN\]/s', '', $output);
+        } else {
+            $returnValue = '';
+        }
 
-        return empty($matches) ? null : [$matches[1], $matches[2], $matches[3]];
+        // Then extract CONTEXT section if it exists
+        if (preg_match('/\[CONTEXT\](.*?)\[END_CONTEXT\]/s', $output, $contextMatches)) {
+            $context = $contextMatches[1];
+            // Remove CONTEXT section to get the before part
+            $output = (string) preg_replace('/\[CONTEXT\].*?\[END_CONTEXT\]\n?/s', '', $output);
+        } else {
+            $context = '';
+        }
+
+        // Only return null if we couldn't find any meaningful structure
+        if (empty($output) && empty($context) && empty($returnValue)) {
+            return null;
+        }
+
+        return [$output, $context, $returnValue];
     }
 
     public function restoreContextData($context)
