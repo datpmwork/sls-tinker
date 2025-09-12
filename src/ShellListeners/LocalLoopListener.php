@@ -68,7 +68,7 @@ class LocalLoopListener extends AbstractListener
                 'sls-tinker',
                 $this->lambdaFunctionName,
                 '--execute',
-                base64_encode($code),
+                $code,
                 '--context',
                 $context,
             ]);
