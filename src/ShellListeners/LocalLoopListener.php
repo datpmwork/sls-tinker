@@ -2,14 +2,14 @@
 
 namespace DatPM\SlsTinker\ShellListeners;
 
-use Psy\Shell;
-use Psy\ExecutionClosure;
-use Psy\Exception\BreakException;
-use Psy\Exception\ThrowUpException;
-use Psy\ExecutionLoop\AbstractListener;
-use DatPM\SlsTinker\Shells\LambdaShell;
 use DatPM\SlsTinker\Lambda\InvocationResult;
 use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
+use DatPM\SlsTinker\Shells\LambdaShell;
+use Psy\Exception\BreakException;
+use Psy\Exception\ThrowUpException;
+use Psy\ExecutionClosure;
+use Psy\ExecutionLoop\AbstractListener;
+use Psy\Shell;
 
 class LocalLoopListener extends AbstractListener
 {

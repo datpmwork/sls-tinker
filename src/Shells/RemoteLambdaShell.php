@@ -12,7 +12,7 @@ class RemoteLambdaShell extends LambdaShell
         if ($this->contextRestored) {
             $specialVars = $this->getSpecialScopeVariables(false);
             $vars = $this->getScopeVariables(false);
-            # Remove special vars from the list
+            // Remove special vars from the list
             foreach (array_keys($specialVars) as $name) {
                 unset($vars[$name]);
             }

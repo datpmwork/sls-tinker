@@ -34,7 +34,7 @@ it('tests variable persistence across commands', function () {
         '$c = $a + $b;',
         'echo $c;',
         '$c = 10;',
-        'echo $c;'
+        'echo $c;',
     ], function ($output) {
         expect($output)->toMatchArray([
             'You\'re running Tinker in AWS Lambda',

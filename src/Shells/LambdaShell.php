@@ -2,10 +2,10 @@
 
 namespace DatPM\SlsTinker\Shells;
 
-use Psy\Shell;
-use Psy\Configuration;
-use Psy\CodeCleaner\NoReturnValue;
 use Illuminate\Console\OutputStyle;
+use Psy\CodeCleaner\NoReturnValue;
+use Psy\Configuration;
+use Psy\Shell;
 
 abstract class LambdaShell extends Shell
 {
