@@ -2,14 +2,14 @@
 
 namespace DatPM\SlsTinker\Commands;
 
-use DatPM\SlsTinker\Shells\LambdaShell;
+use Psy\Configuration;
 use Illuminate\Support\Env;
+use Psy\VersionUpdater\Checker;
+use DatPM\SlsTinker\Shells\LambdaShell;
 use Laravel\Tinker\ClassAliasAutoloader;
 use Laravel\Tinker\Console\TinkerCommand;
-use Psy\Configuration;
-use Psy\VersionUpdater\Checker;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 
 class SlsTinkerCommand extends TinkerCommand
 {

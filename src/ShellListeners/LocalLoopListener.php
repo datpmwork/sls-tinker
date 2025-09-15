@@ -2,14 +2,14 @@
 
 namespace DatPM\SlsTinker\ShellListeners;
 
-use DatPM\SlsTinker\Lambda\InvocationResult;
-use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
-use DatPM\SlsTinker\Shells\LambdaShell;
+use Psy\Shell;
+use Psy\ExecutionClosure;
 use Psy\Exception\BreakException;
 use Psy\Exception\ThrowUpException;
-use Psy\ExecutionClosure;
 use Psy\ExecutionLoop\AbstractListener;
-use Psy\Shell;
+use DatPM\SlsTinker\Shells\LambdaShell;
+use DatPM\SlsTinker\Lambda\InvocationResult;
+use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
 
 class LocalLoopListener extends AbstractListener
 {
@@ -75,6 +75,7 @@ class LocalLoopListener extends AbstractListener
 
             $extractedOutput = $shell->extractContextData($result->getOutput());
             if (is_null($extractedOutput)) {
+                $shell->getRawOutput()->writeln('<info>Make sure the local and remote Tinker shells are using compatible versions.</info>');
                 throw new BreakException('The remote tinker shell returned an invalid payload');
             }
 
@@ -87,10 +88,10 @@ class LocalLoopListener extends AbstractListener
                 }
                 if (! empty($context)) {
                     // Extract _context into shell's scope variables for next code execution
-                    // Return NoValue as output and return value were printed out
+                    // Return NoValue as return value as return value was printed above
                     return "extract(['_context' => '{$context}']); return new \Psy\CodeCleaner\NoReturnValue();";
                 } else {
-                    // Return NoValue as output and return value were printed out
+                    // Return NoValue as return value as return value was printed above
                     return "return new \Psy\CodeCleaner\NoReturnValue();";
                 }
             }

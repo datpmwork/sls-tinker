@@ -10,8 +10,13 @@ class RemoteLambdaShell extends LambdaShell
 
         // Only write new context data when the context was restored
         if ($this->contextRestored) {
-            $excludedSpecialVars = array_diff($this->getScopeVariables(false), $this->getSpecialScopeVariables(false));
-            $this->writeContextData($excludedSpecialVars);
+            $specialVars = $this->getSpecialScopeVariables(false);
+            $vars = $this->getScopeVariables(false);
+            # Remove special vars from the list
+            foreach (array_keys($specialVars) as $name) {
+                unset($vars[$name]);
+            }
+            $this->writeContextData($vars);
         }
     }
 }
