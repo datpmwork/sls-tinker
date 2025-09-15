@@ -2,6 +2,14 @@
 
 All notable changes to `sls-tinker` will be documented in this file.
 
+## v1.1.0 - 2025-09-15
+
+### What's Changed
+
+* Improves remote tinker shell context handling by @datpmwork in https://github.com/datpmwork/sls-tinker/pull/6
+
+**Full Changelog**: https://github.com/datpmwork/sls-tinker/compare/v1.0.0...v1.1.0
+
 ## v1.0.0 - 2025-08-25
 
 ### What's Changed
