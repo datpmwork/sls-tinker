@@ -2,7 +2,6 @@
 
 namespace DatPM\SlsTinker\ShellListeners;
 
-use AsyncAws\Core\Exception\Http\ClientException;
 use DatPM\SlsTinker\Lambda\InvocationResult;
 use DatPM\SlsTinker\Lambda\TinkerLambdaClient;
 use DatPM\SlsTinker\Shells\LambdaShell;
@@ -48,7 +47,12 @@ class LocalLoopListener extends AbstractListener
     }
 
     /**
+     * Evaluate the current code buffer.
+     *
      * @param  LambdaShell  $shell
+     *
+     * @throws BreakException
+     * @throws ThrowUpException
      */
     public function onExecute(Shell $shell, string $code)
     {
@@ -57,6 +61,7 @@ class LocalLoopListener extends AbstractListener
         }
 
         $vars = $shell->getScopeVariables(false);
+        $context = $vars['_context'] ?? base64_encode(serialize(['_' => null]));
         try {
             // Evaluate the current code buffer
             $result = $this->invokeLambdaFunction([
@@ -65,20 +70,35 @@ class LocalLoopListener extends AbstractListener
                 '--execute',
                 $code,
                 '--context',
-                base64_encode(serialize($vars)),
+                $context,
             ]);
 
-            if ([$output, $context, $return] = $shell->extractContextData($result->getOutput())) {
-                $shell->writeStdout(trim($output, "\r\n"));
+            $extractedOutput = $shell->extractContextData($result->getOutput());
+            if (is_null($extractedOutput)) {
+                $shell->getRawOutput()->writeln('<info>Make sure the local and remote Tinker shells are using compatible versions.</info>');
+                throw new BreakException('The remote tinker shell returned an invalid payload');
+            }
 
-                return "extract(unserialize(base64_decode('$context'))); return unserialize(base64_decode('$return'));";
+            if ([$output, $context, $return] = $extractedOutput) {
+                if (! empty($output)) {
+                    $shell->getRawOutput()->writeln($output);
+                }
+                if (! empty($return)) {
+                    $shell->getRawOutput()->writeln($return);
+                }
+                if (! empty($context)) {
+                    // Extract _context into shell's scope variables for next code execution
+                    // Return NoValue as return value as return value was printed above
+                    return "extract(['_context' => '{$context}']); return new \Psy\CodeCleaner\NoReturnValue();";
+                } else {
+                    // Return NoValue as return value as return value was printed above
+                    return "return new \Psy\CodeCleaner\NoReturnValue();";
+                }
             }
 
             return ExecutionClosure::NOOP_INPUT;
-        } catch (ClientException $_e) {
+        } catch (\Throwable $_e) {
             throw new BreakException($_e->getMessage());
-        } catch (\Throwable $throwable) {
-            throw new ThrowUpException($throwable);
         }
     }
 }

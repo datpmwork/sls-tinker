@@ -1,5 +1,29 @@
 <?php
 
+it('tests empty context', function () {
+    $this->expectTinkerOutput('function', [
+        'echo "Laravel";',
+    ], function ($output) {
+        expect($output)->toMatchArray([
+            'You\'re running Tinker in AWS Lambda',
+            'Target Lambda: function',
+            'Laravel',
+        ]);
+    });
+});
+
+it('tests Closure throw error', function () {
+    $this->expectTinkerOutput('function', [
+        '$a = fn() => 1;',
+    ], function ($output) {
+        expect($output)->toMatchArray([
+            'You\'re running Tinker in AWS Lambda',
+            'Target Lambda: function',
+            "Exception  Serialization of 'Closure' is not allowed.",
+        ]);
+    });
+});
+
 it('tests variable persistence across commands', function () {
     $this->expectTinkerOutput('function', [
         '$name = "Laravel";',
@@ -9,17 +33,21 @@ it('tests variable persistence across commands', function () {
         '$b = 2;',
         '$c = $a + $b;',
         'echo $c;',
+        '$c = 10;',
+        'echo $c;',
     ], function ($output) {
         expect($output)->toMatchArray([
             'You\'re running Tinker in AWS Lambda',
             'Target Lambda: function',
-            '= "Laravel"',
-            '= "10"',
-            'Laravel 10⏎',
-            '= 1',
-            '= 2',
-            '= 3',
-            '3⏎',
+            '<whisper>= </whisper>"Laravel"',
+            '<whisper>= </whisper>"10"',
+            'Laravel 10',
+            '<whisper>= </whisper>1',
+            '<whisper>= </whisper>2',
+            '<whisper>= </whisper>3',
+            '3',
+            '<whisper>= </whisper>10',
+            '10',
         ]);
     });
 });
