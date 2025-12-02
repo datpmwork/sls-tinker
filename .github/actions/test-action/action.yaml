@@ -87,4 +87,4 @@ runs:
       if: always()
       shell: bash
       run: |
-        docker stop ${{ inputs.platform }}-$PHP_VERSION-$LARAVEL_TAG
+        docker stop $DOCKER_IMAGE
