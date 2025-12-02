@@ -8,6 +8,9 @@ inputs:
   laravel-version:
     description: 'Laravel version'
     required: true
+  lambda-version:
+    description: 'Lambda SDK version'
+    required: true
   platform:
     description: 'Platform (bref or vapor)'
     required: true
@@ -27,30 +30,37 @@ runs:
       run: |
         PHP_VERSION_TAG="${{ inputs.php-version }}"
         laravel_version="${{ inputs.laravel-version }}"
+        lambda_version="${{ inputs.lambda-version }}"
         platform="${{ inputs.platform }}"
 
         php_tag="${PHP_VERSION_TAG//./}"
         laravel_tag="${laravel_version//[.*]/}"
 
-        # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
-        base_port=$php_tag$laravel_tag
-        # Add offset based on platform
+        # Generate a unique port based on php_tag, laravel_tag, platform, and lambda_version
+        # Remove non-digits for numeric tags
+        php_tag_num="${php_tag//[^0-9]/}"
+        laravel_tag_num="${laravel_tag//[^0-9]/}"
+        lambda_tag_num="${lambda_version//[^0-9]/}"
+        # Assign a numeric code to platform
         if [[ "$platform" == "vapor" ]]; then
-          port=$((base_port + 1))
+          platform_code=1
         elif [[ "$platform" == "bref" ]]; then
-          port=$((base_port + 2))
+          platform_code=2
         else
-          port=$base_port
+          platform_code=0
         fi
+        # Calculate unique port
+        port=$((php_tag_num * 100 + laravel_tag_num * 10 + lambda_tag_num + platform_code))
 
         echo "PHP_VERSION_TAG=$PHP_VERSION_TAG" >> $GITHUB_ENV
         echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
         echo "PHP_VERSION=$php_tag" >> $GITHUB_ENV
+        echo "LAMBDA_VERSION=$lambda_version" >> $GITHUB_ENV
         echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
         echo "SLS_TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
         echo "PORT=$port" >> $GITHUB_ENV
         echo "PLATFORM=$platform" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=${{ inputs.platform }}-$php_tag-$laravel_tag" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=${{ inputs.platform }}-$php_tag-$laravel_tag-$lambda_version" >> $GITHUB_ENV
 
     - name: Create App
       shell: bash
@@ -68,6 +78,7 @@ runs:
     - name: Execute tests
       shell: bash
       run: |
+        composer require async-aws/lambda:^$LAMBDA_VERSION
         composer install
         php vendor/bin/testbench package:sync-skeleton
         SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/pest
