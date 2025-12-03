@@ -7,7 +7,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
 COPY . /tmp/package
 ENV COMPOSER_MIRROR_PATH_REPOS=1
-RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-interaction . && \
+RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-interaction --no-audit . && \
     composer config repositories.local path /tmp/package && \
     composer require datpmwork/sls-tinker:@dev && \
     composer require bref/bref:^2 --no-interaction
@@ -33,7 +33,7 @@ COPY docker/vapor/entrypoint.sh /opt/entrypoint.sh
 
 COPY . /tmp/package
 ENV COMPOSER_MIRROR_PATH_REPOS=1
-RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-interaction . && \
+RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-interaction --no-audit . && \
     composer config repositories.local path /tmp/package && \
     composer require datpmwork/sls-tinker:@dev && \
     composer require laravel/vapor-core --no-interaction && \

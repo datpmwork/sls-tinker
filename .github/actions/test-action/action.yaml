@@ -79,7 +79,7 @@ runs:
       shell: bash
       run: |
         composer require async-aws/lambda:^$LAMBDA_VERSION
-        composer install
+        composer install --no-audit
         php vendor/bin/testbench package:sync-skeleton
         SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/pest
 
