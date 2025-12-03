@@ -18,8 +18,8 @@
     "require": {
         "php": "^7.4|^8.0",
         "async-aws/lambda": "^1.0 || ^2.0",
-        "illuminate/contracts": "^10.0||^11.0||^12.0",
-        "spatie/laravel-package-tools": "^1.16",
+        "illuminate/contracts": "^8.0|^9.0|^10.0||^11.0||^12.0",
+        "spatie/laravel-package-tools": "^1.10",
         "ext-json": "*"
     },
     "require-dev": {
