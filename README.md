@@ -100,6 +100,47 @@ You can publish the config file with:
 php artisan vendor:publish --tag="sls-tinker-config"
 ```
 
+## Configuration
+
+### AWS Region & Credentials
+
+By default, requests are sent to `us-east-1`. If your Lambda functions live in
+another region, export the region into your shell before running the command:
+
+```bash
+export AWS_DEFAULT_REGION=eu-central-1
+```
+
+For authentication you can either export static credentials:
+
+```bash
+export AWS_ACCESS_KEY_ID=your-key
+export AWS_SECRET_ACCESS_KEY=your-secret
+```
+
+…or use a named AWS profile instead:
+
+```bash
+export AWS_PROFILE=your-profile
+```
+
+The region and profile are read from real environment variables (via `getenv()`),
+so make sure to `export` them. Setting them only in your Laravel `.env` is not
+reliable, because Laravel does not populate `getenv()` by default. Also ensure the
+credentials have permission to invoke the target Lambda function.
+
+### Targeting the Right Function
+
+When your serverless setup deploys multiple functions (e.g. `web`, `artisan`,
+`jobWorker` with bref), you must target the **artisan** (console) function. The
+local shell forwards each command as a CLI invocation, which only the console
+function can execute — the `web` (HTTP) and `jobWorker` (queue) functions expect
+different event payloads and will not work:
+
+```bash
+php artisan sls-tinker your-app-production-artisan
+```
+
 ## Testing
 
 ```bash
