@@ -3,6 +3,7 @@ ARG PHP_VERSION_TAG=8.2
 ARG LARAVEL_VERSION=10.0
 
 FROM bref/php-${PHP_VERSION}-console:2 AS bref
+ARG LARAVEL_VERSION=10.0
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
@@ -14,6 +15,7 @@ RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-interactio
     composer require bref/bref:^2 --no-interaction
 
 FROM laravelphp/vapor:php${PHP_VERSION} AS vapor
+ARG LARAVEL_VERSION=10.0
 
 # Expose port 8080 for RIE
 EXPOSE 8080
