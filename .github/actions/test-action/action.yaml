@@ -57,7 +57,7 @@ runs:
       run: |
         docker build --build-arg PHP_VERSION_TAG=$PHP_VERSION_TAG \
                      --build-arg PHP_VERSION=$PHP_VERSION \
-                     --build-arg PHP_LARAVEL_TAG=$LARAVEL_VERSION \
+                     --build-arg LARAVEL_VERSION=$LARAVEL_VERSION \
                      -t $DOCKER_IMAGE -f Dockerfile --target ${{ inputs.platform }} .
 
     - name: Create Docker Instance
