@@ -8,7 +8,14 @@ trait InteractiveTinkerTesting
 {
     protected function runTinkerCommands(array $commands, int $timeout = 10): string
     {
-        $process = new Process(['php', 'artisan', 'tinker'], base_path());
+        $process = new Process([
+            PHP_BINARY,
+            base_path('vendor/bin/testbench'),
+            'tinker',
+        ], base_path(), [
+            'XDG_CONFIG_HOME' => sys_get_temp_dir(),
+            'XDG_CACHE_HOME' => sys_get_temp_dir(),
+        ]);
 
         // Ensure we exit at the end
         if (end($commands) !== 'exit') {
@@ -30,6 +37,6 @@ trait InteractiveTinkerTesting
     protected function expectTinkerOutput(array $commands, string $expectedOutput): void
     {
         $output = $this->runTinkerCommands($commands);
-        expect($output)->toContain($expectedOutput);
+        $this->assertStringContainsString($expectedOutput, $output);
     }
 }
