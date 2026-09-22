@@ -27,7 +27,15 @@ class TestCase extends Orchestra
 
     protected function runTinkerCommands(array $commands, string $lambdaFunction = 'function', int $timeout = 0): string
     {
-        $process = new Process(['php', 'artisan', 'sls-tinker', $lambdaFunction], base_path());
+        $process = new Process([
+            PHP_BINARY,
+            base_path('vendor/bin/testbench'),
+            'sls-tinker',
+            $lambdaFunction,
+        ], base_path(), [
+            'XDG_CONFIG_HOME' => sys_get_temp_dir(),
+            'XDG_CACHE_HOME' => sys_get_temp_dir(),
+        ]);
 
         $process->setPty(true);
 
@@ -73,6 +81,7 @@ class TestCase extends Orchestra
 
             // Filter out prompt/response/exit lines
             if ($trimmed === ''
+                || str_starts_with($trimmed, 'New PHP manual is available')
                 || str_starts_with($trimmed, '>')
                 || str_starts_with($trimmed, 'INFO  Goodbye.')) {
                 continue;
@@ -85,9 +94,9 @@ class TestCase extends Orchestra
         return $resultLines;
     }
 
-    protected function expectTinkerOutput(string $lambdaFunction, array $commands, $expect): void
+    protected function expectTinkerOutput(string $lambdaFunction, array $commands, callable $assert): void
     {
         $output = $this->extractEchoOutput($this->runTinkerCommands($commands, $lambdaFunction));
-        $expect($output);
+        $assert($output);
     }
 }
