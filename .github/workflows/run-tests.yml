@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout package code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run tests
         uses: ./.github/actions/test-action
@@ -65,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout package code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run tests
         uses: ./.github/actions/test-action
