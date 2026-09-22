@@ -11,6 +11,7 @@ jobs:
       matrix:
         php: [ 8.1, 8.2, 8.3, 8.4 ]
         laravel: [ 10.*, 11.*, 12.*, 13.* ]
+        bref: [ 2, 3 ]
         stability: [ prefer-stable ]
         exclude:
           # Laravel 11 requires PHP 8.2+
@@ -24,8 +25,11 @@ jobs:
             php: 8.1
           - laravel: 13.*
             php: 8.2
+          # Bref 3 requires PHP 8.2+
+          - bref: 3
+            php: 8.1
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - bref
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - bref${{ matrix.bref }}
 
     steps:
       - name: Checkout package code
@@ -36,6 +40,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           laravel-version: ${{ matrix.laravel }}
+          bref-version: ${{ matrix.bref }}
           platform: bref
 
   # Test with Vapor platform

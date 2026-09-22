@@ -1,18 +1,22 @@
 ARG PHP_VERSION=82
 ARG PHP_VERSION_TAG=8.2
 ARG LARAVEL_VERSION=10.0
+ARG BREF_VERSION=2
+ARG BREF_IMAGE=bref/php-82-console:2
 
-FROM bref/php-${PHP_VERSION}-console:2 AS bref
+FROM ${BREF_IMAGE} AS bref
 ARG LARAVEL_VERSION=10.0
+ARG BREF_VERSION=2
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
 COPY . /tmp/package
 ENV COMPOSER_MIRROR_PATH_REPOS=1
+ENV BREF_RUNTIME=console
 RUN composer create-project "laravel/laravel:${LARAVEL_VERSION}" --no-security-blocking --no-interaction . && \
     composer config repositories.local path /tmp/package && \
     composer require datpmwork/sls-tinker:@dev && \
-    composer require bref/bref:^2 --no-interaction
+    composer require "bref/bref:^${BREF_VERSION}" --no-interaction
 
 FROM laravelphp/vapor:php${PHP_VERSION} AS vapor
 ARG LARAVEL_VERSION=10.0
