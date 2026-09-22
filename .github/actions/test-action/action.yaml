@@ -8,6 +8,10 @@ inputs:
   laravel-version:
     description: 'Laravel version'
     required: true
+  bref-version:
+    description: 'Bref major version'
+    required: false
+    default: '2'
   platform:
     description: 'Platform (bref or vapor)'
     required: true
@@ -27,30 +31,42 @@ runs:
       run: |
         PHP_VERSION_TAG="${{ inputs.php-version }}"
         laravel_version="${{ inputs.laravel-version }}"
+        bref_version="${{ inputs.bref-version }}"
         platform="${{ inputs.platform }}"
 
         php_tag="${PHP_VERSION_TAG//./}"
         laravel_tag="${laravel_version//[.*]/}"
 
-        # Convert to numbers and calculate port: 9090 + php_tag + laravel_tag
+        # Convert to numbers and calculate a unique port per matrix combination
         base_port=$php_tag$laravel_tag
         # Add offset based on platform
         if [[ "$platform" == "vapor" ]]; then
           port=$((base_port + 1))
         elif [[ "$platform" == "bref" ]]; then
-          port=$((base_port + 2))
+          port=$((base_port + bref_version))
         else
           port=$base_port
         fi
 
         echo "PHP_VERSION_TAG=$PHP_VERSION_TAG" >> $GITHUB_ENV
         echo "LARAVEL_VERSION=$laravel_version" >> $GITHUB_ENV
+        echo "BREF_VERSION=$bref_version" >> $GITHUB_ENV
         echo "PHP_VERSION=$php_tag" >> $GITHUB_ENV
         echo "LARAVEL_TAG=$laravel_tag" >> $GITHUB_ENV
         echo "SLS_TINKER_LAMBDA_ENDPOINT=http://localhost:$port" >> $GITHUB_ENV
         echo "PORT=$port" >> $GITHUB_ENV
         echo "PLATFORM=$platform" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=${{ inputs.platform }}-$php_tag-$laravel_tag" >> $GITHUB_ENV
+        if [[ "$platform" == "bref" ]]; then
+          echo "DOCKER_IMAGE=${{ inputs.platform }}-$php_tag-$laravel_tag-$bref_version" >> $GITHUB_ENV
+          if [[ "$bref_version" == "3" ]]; then
+            echo "BREF_IMAGE=bref/php-$php_tag:3" >> $GITHUB_ENV
+          else
+            echo "BREF_IMAGE=bref/php-$php_tag-console:$bref_version" >> $GITHUB_ENV
+          fi
+        else
+          echo "DOCKER_IMAGE=${{ inputs.platform }}-$php_tag-$laravel_tag" >> $GITHUB_ENV
+          echo "BREF_IMAGE=bref/php-$php_tag-console:$bref_version" >> $GITHUB_ENV
+        fi
 
     - name: Create App
       shell: bash
@@ -58,6 +74,8 @@ runs:
         docker build --build-arg PHP_VERSION_TAG=$PHP_VERSION_TAG \
                      --build-arg PHP_VERSION=$PHP_VERSION \
                      --build-arg LARAVEL_VERSION=$LARAVEL_VERSION \
+                     --build-arg BREF_VERSION=$BREF_VERSION \
+                     --build-arg BREF_IMAGE=$BREF_IMAGE \
                      -t $DOCKER_IMAGE -f Dockerfile --target ${{ inputs.platform }} .
 
     - name: Create Docker Instance
@@ -70,10 +88,10 @@ runs:
       run: |
         composer install
         php vendor/bin/testbench package:sync-skeleton
-        SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/pest
+        SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/phpunit
 
     - name: Stop Lambda Instance
       if: always()
       shell: bash
       run: |
-        docker stop ${{ inputs.platform }}-$PHP_VERSION-$LARAVEL_TAG
+        docker stop $DOCKER_IMAGE
