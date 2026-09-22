@@ -70,7 +70,7 @@ runs:
       run: |
         composer install
         php vendor/bin/testbench package:sync-skeleton
-        SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/pest
+        SLS_PLATFORM=${{ inputs.platform }} ./vendor/bin/phpunit
 
     - name: Stop Lambda Instance
       if: always()
